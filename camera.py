@@ -12,11 +12,11 @@ def transformar_em_lista(string):
 
 # Função: Encontrar vetores de deslocamento
 def vetor_deslocamento(up, oa, taml, tamv, pxl, pxv):
-    versor_desolocamento_lateral = np.cross(up, oa) / (np.linalg.norm(np.cross(up, oa)))
+    versor_deslocamento_lateral = np.cross(up, oa) / (np.linalg.norm(np.cross(up, oa)))
     versor_deslocamento_vertical = up / np.linalg.norm(up)
-    largura_do_pixel = taml/(pxl - 1)
-    altura_do_pixel = tamv/(pxv - 1)
-    deslocamento_lateral = versor_desolocamento_lateral * largura_do_pixel
+    largura_do_pixel = taml/pxl
+    altura_do_pixel = tamv/pxv
+    deslocamento_lateral = versor_deslocamento_lateral * largura_do_pixel
     deslocamento_vertical = versor_deslocamento_vertical * altura_do_pixel
     return deslocamento_lateral, deslocamento_vertical
 
@@ -41,8 +41,8 @@ vetor_deslocamento_lateral, vetor_deslocamento_vertical = vetor_deslocamento(vet
 
 # Loop
 # Determinando vetor inicial
-vetor_centro_lateral = vetor_objeto_alvo - (vetor_deslocamento_lateral * (largura_da_tela/2))
-vetor_inicial = vetor_centro_lateral - (vetor_deslocamento_vertical * (altura_da_tela/2))
+vetor_centro_lateral = vetor_objeto_alvo - (vetor_deslocamento_lateral * (pixels_largura_k/2))
+vetor_inicial = vetor_centro_lateral - (vetor_deslocamento_vertical * (pixels_altura_m/2))
 
 # Varredura
 vetor_atual = vetor_inicial
