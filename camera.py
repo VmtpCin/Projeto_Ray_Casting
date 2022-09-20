@@ -1,5 +1,7 @@
 import numpy as np
 from math import tan
+from skspatial.objects import Sphere, Line
+import Objetos_ray_tracing
 
 
 # Função: transformar input em lista
