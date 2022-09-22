@@ -1,5 +1,6 @@
 import numpy as np
 from skspatial.objects import Sphere, Line, Plane
+from math import sqrt
 
 
 def registrar_objetos():
@@ -22,18 +23,27 @@ def registrar_objetos():
 
 
 def intersecao_esfera(esf, vet, obs):
-    esfera = Sphere(esf[1], esf[2])
-    try:
-        p1, p2 = esfera.intersect_line(Line(obs, vet))
-    except ValueError:
-        return '', ''
-    return p1, p2
+    a = np.linalg.norm(vet)**2
+    b = 2 * (np.dot(vet, obs) - np.dot(vet, esf[2]))
+    c = np.linalg.norm(obs) - (2 * np.dot(esf[2], obs)) + np.linalg.norm(esf[2])**2 - esf[1]**2
+    delta = b**2 - (4*a*c)
+    if delta < 0:
+        return 'Não existe'
+    it1 = (-b + sqrt(delta))/2*a
+    it2 = (-b - sqrt(delta))/2*a
+    if it1 < it2:
+        menor_t = it1
+    else:
+        menor_t = it2
+    x = obs[0] + menor_t * vet[0]
+    y = obs[1] + menor_t * vet[1]
+    z = obs[2] + menor_t * vet[2]
+    return np.array([x, y, z])
 
 
 def intersecao_plano(pla, vet, obs):
-    plano = Plane(pla[2], pla[1])
-    try:
-        p = plano.intersect_line(Line(obs, vet))
-    except ValueError:
-        return ''
-    return p
+    it = (np.dot(pla[1], obs) - np.dot(pla[1], pla[2]))/np.dot(pla[1], vet)
+    x = obs[0] + it * vet[0]
+    y = obs[1] + it * vet[1]
+    z = obs[2] + it * vet[2]
+    return np.array([x, y, z])
