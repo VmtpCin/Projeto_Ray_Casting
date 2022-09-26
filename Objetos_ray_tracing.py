@@ -1,6 +1,12 @@
 import numpy as np
-from skspatial.objects import Sphere, Line, Plane
 from math import sqrt
+
+
+def transformar_em_lista(string):
+    vetor = string.split(' ')
+    for g in range(3):
+        vetor[g] = int(vetor[g])
+    return vetor
 
 
 def registrar_objetos():
@@ -11,7 +17,7 @@ def registrar_objetos():
         tipo = input('')
         if tipo == '1':
             raio = int(input(''))
-            centro = input('')
+            centro = np.array(transformar_em_lista(input('')))
             objeto = ['Esfera', raio, centro]
             objetos[i] = objeto
         elif tipo == '2':
@@ -22,28 +28,60 @@ def registrar_objetos():
     return objetos
 
 
+def intersecao(obj, vet, obs):
+    men_t = 999999999999
+    primeira_interseccao = -1
+    keys = obj.keys()
+    for i in range(len(keys)):
+        if obj[i][0] == 'Esfera':
+            inter, t = intersecao_esfera(obj[i], vet, obs)
+            if inter is True and t < men_t:
+                men_t = t
+                primeira_interseccao = i
+        elif obj[i][0] == 'Plano':
+            inter, t = intersecao_plano(obj[i], vet, obs)
+            if inter is True and t < men_t:
+                men_t = t
+                primeira_interseccao = i
+    return primeira_interseccao
+
+
 def intersecao_esfera(esf, vet, obs):
     a = np.linalg.norm(vet)**2
     b = 2 * (np.dot(vet, obs) - np.dot(vet, esf[2]))
     c = np.linalg.norm(obs) - (2 * np.dot(esf[2], obs)) + np.linalg.norm(esf[2])**2 - esf[1]**2
     delta = b**2 - (4*a*c)
+
     if delta < 0:
-        return 'Não existe'
+        return False, -1
+
     it1 = (-b + sqrt(delta))/2*a
     it2 = (-b - sqrt(delta))/2*a
+
     if it1 < it2:
         menor_t = it1
     else:
         menor_t = it2
-    x = obs[0] + menor_t * vet[0]
-    y = obs[1] + menor_t * vet[1]
-    z = obs[2] + menor_t * vet[2]
-    return np.array([x, y, z])
+
+    if it1 < 0 and it2 < 0:
+        return False, -1
+    else:
+        return True, menor_t
+
+    # x = obs[0] + menor_t * vet[0]
+    # y = obs[1] + menor_t * vet[1]
+    # z = obs[2] + menor_t * vet[2]
+    # return np.array([x, y, z])
 
 
 def intersecao_plano(pla, vet, obs):
-    it = (np.dot(pla[1], obs) - np.dot(pla[1], pla[2]))/np.dot(pla[1], vet)
-    x = obs[0] + it * vet[0]
-    y = obs[1] + it * vet[1]
-    z = obs[2] + it * vet[2]
-    return np.array([x, y, z])
+    try:
+        it = (np.dot(pla[1], obs) - np.dot(pla[1], pla[2]))/np.dot(pla[1], vet)
+        return True, it
+    except EOFError:
+        return False, -1
+
+    # x = obs[0] + it * vet[0]
+    # y = obs[1] + it * vet[1]
+    # z = obs[2] + it * vet[2]
+    # return np.array([x, y, z])

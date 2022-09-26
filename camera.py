@@ -1,7 +1,7 @@
 import numpy as np
-from math import tan
-from skspatial.objects import Sphere, Line
-import Objetos_ray_tracing
+from math import tan, radians
+import Objetos_ray_tracing as obj
+from PIL import Image
 
 
 # Função: transformar input em lista
@@ -31,11 +31,17 @@ distancia_objeto_tela = int(input(''))
 pixels_largura_k = int(input(''))
 pixels_altura_m = int(input(''))
 
+grid = np.zeros((pixels_altura_m, pixels_largura_k, 3), dtype=np.uint8)
+
+
+# Registrar objetos
+lista_objetos = obj.registrar_objetos()
+
 # Calcular Vetor_objeto_alvo
 vetor_objeto_alvo = ponto_alvo - ponto_observador
 
 # Determinando altura/largura da tela virtual
-largura_da_tela = 2 * distancia_objeto_tela * tan(angulo_de_visao)
+largura_da_tela = 2 * distancia_objeto_tela * tan(radians(angulo_de_visao))
 altura_da_tela = largura_da_tela * (pixels_altura_m/pixels_largura_k)
 
 # Criando Vetor deslocamento
@@ -43,14 +49,25 @@ vetor_deslocamento_lateral, vetor_deslocamento_vertical = vetor_deslocamento(vet
 
 # Loop
 # Determinando vetor inicial
-vetor_centro_lateral = vetor_objeto_alvo - (vetor_deslocamento_lateral * (pixels_largura_k/2))
-vetor_inicial = vetor_centro_lateral - (vetor_deslocamento_vertical * (pixels_altura_m/2))
+vetor_centro_lateral = vetor_objeto_alvo - (vetor_deslocamento_lateral * ((pixels_largura_k - 1)/2))
+vetor_inicial = vetor_centro_lateral - (vetor_deslocamento_vertical * ((pixels_altura_m - 1)/2))
 
 # Varredura
 vetor_atual = vetor_inicial
 for i in range(pixels_altura_m):
     if i > 0:
-        vetor_atual = vetor_atual + vetor_deslocamento_vertical
+        vetor_atual = vetor_atual + vetor_deslocamento_vertical - (vetor_deslocamento_lateral * (pixels_largura_k - 1))
     for k in range(pixels_largura_k):
-        vetor_atual = vetor_atual + vetor_deslocamento_lateral
+        if k > 0:
+            vetor_atual = vetor_atual + vetor_deslocamento_lateral
         print(vetor_atual)
+        primeira_i = obj.intersecao(lista_objetos, vetor_atual, ponto_observador)
+        if primeira_i < 0:
+            grid[i, k] = [255, 255, 255]
+        elif lista_objetos[primeira_i][0] == 'Esfera':
+            grid[i, k] = [255, 0, 0]
+        elif lista_objetos[primeira_i][0] == 'Plano':
+            grid[i, k] = [0, 255, 0]
+
+imagem = Image.fromarray(grid)
+imagem.show()
