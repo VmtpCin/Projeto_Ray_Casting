@@ -34,12 +34,12 @@ def intersecao(obj, vet, obs):
     keys = obj.keys()
     for i in range(len(keys)):
         if obj[i][0] == 'Esfera':
-            inter, t = intersecao_esfera(obj[i], vet, obs)
+            inter, t, normal = intersecao_esfera(obj[i], vet, obs)
             if inter is True and t < men_t:
                 men_t = t
                 primeira_interseccao = i
         elif obj[i][0] == 'Plano':
-            inter, t = intersecao_plano(obj[i], vet, obs)
+            inter, t, normal = intersecao_plano(obj[i], vet, obs)
             if inter is True and t < men_t:
                 men_t = t
                 primeira_interseccao = i
@@ -53,7 +53,7 @@ def intersecao_esfera(esf, vet, obs):
     delta = b**2 - (4*a*c)
 
     if delta < 0:
-        return False, -1
+        return False, -1, None
 
     it1 = (-b + sqrt(delta))/2*a
     it2 = (-b - sqrt(delta))/2*a
@@ -64,24 +64,18 @@ def intersecao_esfera(esf, vet, obs):
         menor_t = it2
 
     if it1 < 0 and it2 < 0:
-        return False, -1
-    else:
-        return True, menor_t
+        return False, -1, None
 
-    # x = obs[0] + menor_t * vet[0]
-    # y = obs[1] + menor_t * vet[1]
-    # z = obs[2] + menor_t * vet[2]
-    # return np.array([x, y, z])
-
+    centro = esf[2]
+    ponto_intersecao = np.array([obs[0] + menor_t * vet[0],
+                                 obs[1] + menor_t * vet[1],
+                                 obs[2] + menor_t * vet[2]])
+    normal = ponto_intersecao - centro
+    return True, menor_t, normal
 
 def intersecao_plano(pla, vet, obs):
     try:
         it = (np.dot(pla[1], obs) - np.dot(pla[1], pla[2]))/np.dot(pla[1], vet)
-        return True, it
+        return True, it, pla[1]
     except EOFError:
-        return False, -1
-
-    # x = obs[0] + it * vet[0]
-    # y = obs[1] + it * vet[1]
-    # z = obs[2] + it * vet[2]
-    # return np.array([x, y, z])
+        return False, -1, None
