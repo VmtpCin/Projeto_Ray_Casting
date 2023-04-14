@@ -1,13 +1,13 @@
 import numpy as np
 from math import tan, radians
-import Objetos_ray_tracing as obj
+import Objetos_ray_tracing as Obj
 from PIL import Image
 
 
 # Função: transformar input em lista
 def transformar_em_lista(string):
     vetor = string.split(' ')
-    for g in range(3):
+    for g in range(len(vetor)):
         vetor[g] = int(vetor[g])
     return vetor
 
@@ -15,15 +15,25 @@ def transformar_em_lista(string):
 def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0:
-       return v
+        return v
     return v / norm
 
 
 # Função: Encontrar vetores de deslocamento
-def vetor_deslocamento(up, b, tamx, tamy, k, m):
-    deslocamento_lateral = (2*tamx/(k-1)) * b
-    deslocamento_vertical = (2*tamy/(m-1)) * up
+def vetor_deslocamento(up, b, tamx, tamy, tk, tm):
+    deslocamento_lateral = (2*tamx/(tk-1)) * b
+    deslocamento_vertical = (2*tamy/(tm-1)) * up
     return deslocamento_vertical, deslocamento_lateral
+
+
+def traceray(p, n, mtr, amb, luzes, obs):
+    cor = mtrl[5] * amb
+    for luz in luzes:
+        vetor_luz = luz[0] - p
+        vetor_ponto_observador = obs - p
+        refletido = 2 * n * np.cross(n, vetor_luz) - vetor_luz
+        cor += luz[1] * (mtr[3] * np.cross(vetor_luz, n)) + (mtr[4] * (np.cross(refletido, vetor_ponto_observador) ** mtr[8]))
+    return [cor[0], cor[1], cor[2]]
 
 
 ponto_observador = np.array(transformar_em_lista(input('')))
@@ -37,7 +47,8 @@ grid = np.zeros((pixels_altura_m, pixels_largura_k, 3), dtype=np.uint8)
 
 
 # Registrar objetos
-lista_objetos = obj.registrar_objetos()
+lista_objetos = Obj.registrar_objetos()
+lista_luzes, ambiente = Obj.registrar_luzes()
 
 # Calcular Vetor_objeto_alvo
 vetor_objeto_alvo = ponto_alvo - ponto_observador
@@ -68,13 +79,11 @@ for i in range(pixels_altura_m):
         if k > 0:
             vetor_atual = vetor_atual + vetor_deslocamento_lateral
         print(vetor_atual)
-        primeira_i = obj.intersecao(lista_objetos, vetor_atual, ponto_observador)
+        primeira_i, ponto, normal, mtrl = Obj.intersecao(lista_objetos, vetor_atual, ponto_observador)
         if primeira_i < 0:
             grid[i, k] = [0, 0, 0]
-        elif lista_objetos[primeira_i][0] == 'Esfera':
-            grid[i, k] = [255, 0, 0]
-        elif lista_objetos[primeira_i][0] == 'Plano':
-            grid[i, k] = [0, 255, 0]
+        else:
+            grid[i, k] = traceray(ponto, normal, mtrl, lista_luzes, ambiente, ponto_observador)
 
 imagem = Image.fromarray(grid)
 imagem.show()
