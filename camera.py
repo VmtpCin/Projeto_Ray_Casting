@@ -1,7 +1,10 @@
+import sys
 import numpy as np
 from math import tan, radians
 import Objetos_ray_tracing as obj
 from PIL import Image
+
+from parser_input import ParserInput
 
 
 # Função: transformar input em lista
@@ -22,20 +25,22 @@ def vetor_deslocamento(up, oa, taml, tamv, pxl, pxv):
     deslocamento_vertical = versor_deslocamento_vertical * altura_do_pixel
     return deslocamento_lateral, deslocamento_vertical
 
+pi = ParserInput("input.txt")
 
-ponto_observador = np.array(transformar_em_lista(input('')))
-ponto_alvo = np.array(transformar_em_lista(input('')))
-vetor_up = np.array(transformar_em_lista(input('')))
-angulo_de_visao = int(input(''))
-distancia_objeto_tela = int(input(''))
-pixels_largura_k = int(input(''))
-pixels_altura_m = int(input(''))
+ponto_observador = pi.camera.ponto_observador
+ponto_alvo = pi.camera.ponto_alvo
+vetor_up = pi.camera.vetor_up
+angulo_de_visao = 60
+distancia_objeto_tela = pi.camera.distancia
+pixels_largura_k = pi.camera.largura
+pixels_altura_m = pi.camera.altura
 
 grid = np.zeros((pixels_altura_m, pixels_largura_k, 3), dtype=np.uint8)
 
 
 # Registrar objetos
-lista_objetos = obj.registrar_objetos()
+# lista_objetos = obj.registrar_objetos()
+lista_objetos = pi.objetos
 
 # Calcular Vetor_objeto_alvo
 vetor_objeto_alvo = ponto_alvo - ponto_observador
