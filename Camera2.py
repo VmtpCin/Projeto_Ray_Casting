@@ -36,54 +36,52 @@ def traceray(p, n, mtr, amb, luzes, obs):
     return [cor[0], cor[1], cor[2]]
 
 
-ponto_observador = np.array(transformar_em_lista(input('')))
-ponto_alvo = np.array(transformar_em_lista(input('')))
-vetor_up_w = np.array(transformar_em_lista(input('')))
-angulo_de_visao = int(input(''))
-distancia_obs_tela = int(input(''))
-pixels_largura_k = int(input(''))
-pixels_altura_m = int(input(''))
-grid = np.zeros((pixels_altura_m, pixels_largura_k, 3), dtype=np.uint8)
-
-
 # Registrar objetos
+camera = Obj.registrar_camera()
 lista_objetos = Obj.registrar_objetos()
-lista_luzes, ambiente = Obj.registrar_luzes()
+# lista_luzes, ambiente = Obj.registrar_luzes()
+
+# Criar grid
+grid = np.zeros((camera[6], camera[5], 3), dtype=np.uint8)
 
 # Calcular Vetor_objeto_alvo
-vetor_objeto_alvo = ponto_alvo - ponto_observador
+vetor_objeto_alvo = camera[1] - camera[0]
 
 # Normalisando a base
 oa_norm = normalize(vetor_objeto_alvo)
-vetor_b = normalize(np.cross(vetor_up_w, oa_norm))
+vetor_b = normalize(np.cross(camera[2], oa_norm))
 vetor_up_v = np.cross(oa_norm, vetor_b)
 
 # Calculando tamanho da tela
-tam_x = distancia_obs_tela * tan(radians(angulo_de_visao/2))
-tam_y = tam_x * (pixels_altura_m/pixels_largura_k)
+tam_x = camera[4] * tan(radians(camera[3]/2))
+tam_y = tam_x * (camera[6]/camera[5])
 
 # Criando Vetor deslocamento
-vetor_deslocamento_vertical, vetor_deslocamento_lateral = vetor_deslocamento(vetor_up_v, vetor_b, tam_x, tam_y, pixels_largura_k, pixels_altura_m)
+vetor_deslocamento_vertical, vetor_deslocamento_lateral = vetor_deslocamento(vetor_up_v, vetor_b, tam_x, tam_y, camera[5], camera[6])
 
 # Loop
 # Determinando vetor inicial
-vetor_inicial = oa_norm * distancia_obs_tela - tam_x*vetor_b - tam_y * vetor_up_v
+vetor_inicial = oa_norm * camera[4] - tam_x*vetor_b - tam_y * vetor_up_v
 
 # Varredura
 vetor_atual = vetor_inicial
-for i in range(pixels_altura_m):
+for i in range(camera[6]):
     if i > 0:
         vetor_atual[2] = vetor_inicial[2]
         vetor_atual = vetor_atual + vetor_deslocamento_vertical
-    for k in range(pixels_largura_k):
+    for k in range(camera[5]):
         if k > 0:
             vetor_atual = vetor_atual + vetor_deslocamento_lateral
         print(vetor_atual)
-        primeira_i, ponto, normal, mtrl = Obj.intersecao(lista_objetos, vetor_atual, ponto_observador)
+        primeira_i, ponto, normal, mtrl, type = Obj.intersecao(lista_objetos, vetor_atual, camera[0])
         if primeira_i < 0:
             grid[i, k] = [0, 0, 0]
         else:
-            grid[i, k] = traceray(ponto, normal, mtrl, lista_luzes, ambiente, ponto_observador)
+            if type == 2:
+                grid[i, k] = [255, 0, 0]
+            else:
+                grid[i, k] = [0, 255, 0]
+                # traceray(ponto, normal, mtrl, lista_luzes, ambiente, camera[0])
 
 imagem = Image.fromarray(grid)
 imagem.show()
