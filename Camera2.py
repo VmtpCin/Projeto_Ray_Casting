@@ -65,6 +65,8 @@ vetor_inicial = oa_norm * camera[4] - tam_x*vetor_b - tam_y * vetor_up_v
 
 # Varredura
 vetor_atual = vetor_inicial
+contador = 0
+porcentagem = 0
 for i in range(camera[6]):
     if i > 0:
         vetor_atual[2] = vetor_inicial[2]
@@ -72,12 +74,16 @@ for i in range(camera[6]):
     for k in range(camera[5]):
         if k > 0:
             vetor_atual = vetor_atual + vetor_deslocamento_lateral
-        print(vetor_atual)
-        primeira_i, ponto, normal, mtrl, type = Obj.intersecao(lista_objetos, vetor_atual, camera[0])
+        contador += 1
+        porcentagem_temp = round(contador/(camera[6] * camera[5]) * 100)
+        if porcentagem_temp > porcentagem:
+            porcentagem = porcentagem_temp
+            print(porcentagem_temp)
+        primeira_i, ponto, normal, mtrl, tipo = Obj.intersecao(lista_objetos, vetor_atual, camera[0])
         if primeira_i < 0:
-            grid[i, k] = [0, 0, 0]
+            grid[i, k] = [255, 255, 255]
         else:
-            if type == 2:
+            if tipo == 3:
                 grid[i, k] = [255, 0, 0]
             else:
                 grid[i, k] = [0, 255, 0]
