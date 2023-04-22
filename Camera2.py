@@ -26,20 +26,24 @@ def vetor_deslocamento(up, b, tamx, tamy, tk, tm):
     return deslocamento_vertical, deslocamento_lateral
 
 
-def traceray(p, n, mtr, amb, luzes, obs):
+def traceray(p, n, mtr, luzes, amb, obs):
     cor = mtrl[5] * amb
     for luz in luzes:
-        vetor_luz = luz[0] - p
-        vetor_ponto_observador = obs - p
-        refletido = 2 * n * np.cross(n, vetor_luz) - vetor_luz
-        cor += luz[1] * (mtr[3] * np.cross(vetor_luz, n)) + (mtr[4] * (np.cross(refletido, vetor_ponto_observador) ** mtr[8]))
-    return [cor[0], cor[1], cor[2]]
+        vetor_luz = normalize(luz[0] - p)
+        n = normalize(n)
+        # vetor_ponto_observador = obs - p
+        # refletido = 2 * n * np.cross(n, vetor_luz) - vetor_luz
+        z = np.dot(n, vetor_luz)
+        if z > 0:
+            cor += luz[1] * (mtr[3] * z) # + (mtr[4] * (np.cross(refletido, vetor_ponto_observador) ** mtr[8]))
+        x = 255 * cor
+    return [255 * cor, 0, 0]
 
 
 # Registrar objetos
 camera = Obj.registrar_camera()
 lista_objetos = Obj.registrar_objetos()
-# lista_luzes, ambiente = Obj.registrar_luzes()
+lista_luzes, ambiente = Obj.registrar_luzes()
 
 # Criar grid
 grid = np.zeros((camera[6], camera[5], 3), dtype=np.uint8)
@@ -86,8 +90,7 @@ for i in range(camera[6]):
             if tipo == 3:
                 grid[i, k] = [255, 0, 0]
             else:
-                grid[i, k] = [0, 255, 0]
-                # traceray(ponto, normal, mtrl, lista_luzes, ambiente, camera[0])
+                grid[i, k] = traceray(ponto, normal, mtrl, lista_luzes, ambiente, camera[0])
 
 imagem = Image.fromarray(grid)
 imagem.show()

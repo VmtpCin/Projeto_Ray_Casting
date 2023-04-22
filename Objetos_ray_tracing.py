@@ -8,7 +8,7 @@ from math import sqrt
 def transformar_em_lista(string):
     vetor = string.split(' ')
     for g in range(len(vetor)):
-        vetor[g] = int(vetor[g])
+        vetor[g] = float(vetor[g])
     return vetor
 
 
@@ -60,8 +60,6 @@ def registrar_objetos():
                 ponto3 = lista_vertices[lista_triangulos[j][2]]
                 normal = np.cross((ponto1 - ponto2), (ponto1 - ponto3))
                 lista_normal_faces.append(normal)
-                objeto = ['triangulo', ponto1, ponto2, ponto3, normal]
-                objetos[j] = objeto
             for v in range(num_vertices):
                 cont = 0
                 soma_normais_faces_adjacentes = 0
@@ -72,21 +70,22 @@ def registrar_objetos():
                 normal_vertice = soma_normais_faces_adjacentes/cont
                 lista_normal_vertices.append(normal_vertice)
             for t in range(num_triangulos):
-                ponto1 = lista_vertices[lista_triangulos[j][0]]
-                ponto2 = lista_vertices[lista_triangulos[j][1]]
-                ponto3 = lista_vertices[lista_triangulos[j][2]]
-                objeto = ['triangulo', ponto1, ponto2, ponto3, lista_triangulos[j], lista_normal_vertices]
-                objetos[j] = objeto
+                ponto1 = lista_vertices[lista_triangulos[t][0]]
+                ponto2 = lista_vertices[lista_triangulos[t][1]]
+                ponto3 = lista_vertices[lista_triangulos[t][2]]
+                normal = np.cross((ponto1 - ponto2), (ponto1 - ponto3))
+                objeto = ['triangulo', ponto1, ponto2, ponto3, normal,  lista_triangulos[t], lista_normal_vertices]
+                objetos[t] = objeto
     return objetos
 
 
 def registrar_luzes():
-    ambiente = np.array(transformar_em_lista(input('')))
+    ambiente = float(input(''))
     luzes = []
     num_luzes = int(input(''))
     for i in range(num_luzes):
         local = np.array(transformar_em_lista(input('')))
-        intensidade = np.array(transformar_em_lista(input('')))
+        intensidade = float(input(''))
         luz = [local, intensidade]
         luzes.append(luz)
     return luzes, ambiente
@@ -201,7 +200,7 @@ def intersecao_triangulo(tri, vet, obs):
         alfa = resultado[0]
         beta = resultado[1]
         gama = resultado[2]
-        normal = alfa * (tri[5][tri[4][0]]) + beta * (tri[5][tri[4][1]]) + gama * (tri[5][tri[4][2]])  # Checar ordem dos vertices, tem que ser igual a ordem que descreve o ponto
+        normal = 0  # alfa * (tri[6][tri[5][0]]) + beta * (tri[6][tri[5][1]]) + gama * (tri[6][tri[5][2]])  # Checar ordem dos vertices, tem que ser igual a ordem que descreve o ponto
         if 0 < alfa < 1 and 0 < beta < 1 and 0 < gama < 1:
             return True, t, ponto, normal, mtrl
         else:
