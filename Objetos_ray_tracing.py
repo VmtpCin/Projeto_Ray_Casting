@@ -19,7 +19,7 @@ def registrar_camera():
     angulo_de_visao = 90  # int(input(''))
     distancia_obs_tela = 1  # int(input(''))
     pixels_largura_k = 500  # int(input(''))
-    pixels_altura_m = 500  # int(input(''))
+    pixels_altura_m = 500 # int(input(''))
     camera = [ponto_observador, ponto_alvo, vetor_up_w, angulo_de_visao, distancia_obs_tela, pixels_largura_k, pixels_altura_m]
     return camera
 
@@ -84,9 +84,14 @@ def registrar_luzes():
     luzes = []
     num_luzes = int(input(''))
     for i in range(num_luzes):
+        luz = []
         local = np.array(transformar_em_lista(input('')))
         intensidade = float(input(''))
-        luz = [local, intensidade]
+        tipo = input('')
+        if tipo == 'p':
+            luz = [local, intensidade, 'pontual']
+        elif tipo == 'd':
+            luz = [local, intensidade, 'direcional']
         luzes.append(luz)
     return luzes, ambiente
 
@@ -99,28 +104,32 @@ def intersecao(obj, vet, obs):
     ponto_temp = []
     normal = [0, 0, 0]
     normal_temp = []
-    mtrl = [0, 0, 0]
+    mtrl_temp = []
+    mtrl = []
     keys = obj.keys()
     for i in range(len(keys)):
         if obj[i][0] == 'Esfera':
-            inter, t, ponto_temp, normal_temp, mtrl = intersecao_esfera(obj[i], vet, obs)
+            inter, t, ponto_temp, normal_temp, mtrl_temp = intersecao_esfera(obj[i], vet, obs)
             if inter is True and t < men_t:
+                mtrl = mtrl_temp
                 men_t = t
                 primeira_interseccao = i
                 normal = normal_temp
                 ponto = ponto_temp
                 tipo = 1
         elif obj[i][0] == 'Plano':
-            inter, t, ponto_temp, normal_temp, mtrl = intersecao_plano(obj[i], vet, obs)
+            inter, t, ponto_temp, normal_temp, mtrl_temp = intersecao_plano(obj[i], vet, obs)
             if inter is True and t < men_t:
+                mtrl = mtrl_temp
                 men_t = t
                 primeira_interseccao = i
                 normal = normal_temp
                 ponto = ponto_temp
                 tipo = 2
         elif obj[i][0] == 'triangulo':
-            inter, t, ponto_temp, normal_temp, mtrl = intersecao_triangulo(obj[i], vet, obs)
+            inter, t, ponto_temp, normal_temp, mtrl_temp = intersecao_triangulo(obj[i], vet, obs)
             if inter is True and t < men_t:
+                mtrl = mtrl_temp
                 men_t = t
                 primeira_interseccao = i
                 normal = normal_temp
