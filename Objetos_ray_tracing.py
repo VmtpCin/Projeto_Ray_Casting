@@ -2,7 +2,7 @@ import numpy as np
 import sympy
 from math import sqrt
 
-# Mtrl = [or, og, ob, kd, ks, ka, kr, kt, p]
+# Mtrl = [or, og, ob, kd, ks, ka, kr, kt, p, ir]
 
 
 def transformar_em_lista(string):
@@ -13,6 +13,7 @@ def transformar_em_lista(string):
 
 
 def registrar_camera():
+
     ponto_observador = np.array(transformar_em_lista(input('')))
     ponto_alvo = np.array(transformar_em_lista(input('')))
     vetor_up_w = np.array(transformar_em_lista(input('')))
@@ -30,7 +31,7 @@ def registrar_objetos():
     for i in range(num_de_objetos):
         tipo = input('')
         if tipo == '1':
-            raio = int(input(''))
+            raio = float(input(''))
             centro = np.array(transformar_em_lista(input('')))
             mtrl = np.array(transformar_em_lista(input('')))
             objeto = ['Esfera', raio, centro, mtrl]
@@ -96,7 +97,7 @@ def registrar_luzes():
     return luzes, ambiente
 
 
-def intersecao(obj, vet, obs):
+def intersecao(obj, vet, obs, min, max):
     men_t = 999999999999
     primeira_interseccao = -1
     tipo = 0
@@ -110,7 +111,7 @@ def intersecao(obj, vet, obs):
     for i in range(len(keys)):
         if obj[i][0] == 'Esfera':
             inter, t, ponto_temp, normal_temp, mtrl_temp = intersecao_esfera(obj[i], vet, obs)
-            if inter is True and t < men_t:
+            if inter is True and t < men_t and min < t < max:
                 mtrl = mtrl_temp
                 men_t = t
                 primeira_interseccao = i
@@ -119,7 +120,7 @@ def intersecao(obj, vet, obs):
                 tipo = 1
         elif obj[i][0] == 'Plano':
             inter, t, ponto_temp, normal_temp, mtrl_temp = intersecao_plano(obj[i], vet, obs)
-            if inter is True and t < men_t:
+            if inter is True and t < men_t and min < t < max:
                 mtrl = mtrl_temp
                 men_t = t
                 primeira_interseccao = i
@@ -128,28 +129,28 @@ def intersecao(obj, vet, obs):
                 tipo = 2
         elif obj[i][0] == 'triangulo':
             inter, t, ponto_temp, normal_temp, mtrl_temp = intersecao_triangulo(obj[i], vet, obs)
-            if inter is True and t < men_t:
+            if inter is True and t < men_t and min < t < max:
                 mtrl = mtrl_temp
                 men_t = t
                 primeira_interseccao = i
                 normal = normal_temp
                 ponto = ponto_temp
                 tipo = 3
-    return primeira_interseccao, ponto, normal, mtrl, tipo
+    return primeira_interseccao, ponto, normal, mtrl, tipo, men_t
 
 
 def intersecao_esfera(esf, vet, obs):
-    a = np.linalg.norm(vet)**2
-    b = 2 * (np.dot(vet, obs) - np.dot(vet, esf[2]))
-    c = np.linalg.norm(obs) - (2 * np.dot(esf[2], obs)) + np.linalg.norm(esf[2])**2 - esf[1]**2
-    delta = b**2 - (4*a*c)
+    oc = obs - esf[2]
+    a = np.dot(vet, vet)
+    b = 2 * np.dot(oc, vet)
+    c = np.dot(oc, oc) - (esf[1] ** 2)
+    delta = b ** 2 - (4 * a * c)
 
     if delta < 0:
         return False, -1, 0, 0, 0
 
-    it1 = (-b + sqrt(delta))/2*a
-    it2 = (-b - sqrt(delta))/2*a
-
+    it1 = (-b + sqrt(delta))/(2*a)
+    it2 = (-b - sqrt(delta))/(2*a)
     if it1 < it2:
         menor_t = it1
     else:
