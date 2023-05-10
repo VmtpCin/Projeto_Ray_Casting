@@ -1,6 +1,6 @@
 import numpy as np
 import sympy
-from math import sqrt
+from math import sqrt, cos, sin, radians
 
 # Mtrl = [or, og, ob, kd, ks, ka, kr, kt, p, ir]
 
@@ -12,16 +12,29 @@ def transformar_em_lista(string):
     return vetor
 
 
+def matrix_transform(ponto):
+    x = 0
+    y = 0
+    z = -1
+    x = cos(radians(30))
+    y = sin(radians(30))
+    matriz = np.array([[1, 0, 0, x], [0, 1, 0, y], [0, 0, 1, z], [0, 0, 0, 1]])
+    matriz = np.array([[x, 0, y, 0], [0, 1, 0, 0], [-y, 0, x, 0], [0, 0, 0, 1]])
+    ponto = np.array([ponto[0], ponto[1], ponto[2], 1])
+    resultado = np.matmul(matriz, ponto)
+    ponto = np.array([resultado[0], resultado[1], resultado[2]])
+    return ponto
+
+
 def registrar_camera():
 
     ponto_observador = np.array(transformar_em_lista(input('')))
     ponto_alvo = np.array(transformar_em_lista(input('')))
     vetor_up_w = np.array(transformar_em_lista(input('')))
-    angulo_de_visao = 90  # int(input(''))
-    distancia_obs_tela = 1  # int(input(''))
-    pixels_largura_k = 500  # int(input(''))
-    pixels_altura_m = 500 # int(input(''))
-    camera = [ponto_observador, ponto_alvo, vetor_up_w, angulo_de_visao, distancia_obs_tela, pixels_largura_k, pixels_altura_m]
+    distancia_obs_tela = int(input(''))
+    pixels_largura_k = int(input(''))
+    pixels_altura_m = int(input(''))
+    camera = [ponto_observador, ponto_alvo, vetor_up_w, distancia_obs_tela, pixels_largura_k, pixels_altura_m]
     return camera
 
 
@@ -33,6 +46,7 @@ def registrar_objetos():
         if tipo == '1':
             raio = float(input(''))
             centro = np.array(transformar_em_lista(input('')))
+            centro = matrix_transform(centro)
             mtrl = np.array(transformar_em_lista(input('')))
             objeto = ['Esfera', raio, centro, mtrl]
             objetos[i] = objeto
@@ -45,8 +59,6 @@ def registrar_objetos():
         elif tipo == "3":
             lista_vertices = []
             lista_triangulos = []
-            lista_normal_faces = []
-            lista_normal_vertices = []
             num_triangulos = int(input(''))
             num_vertices = int(input(''))
             for v in range(num_vertices):
@@ -55,28 +67,20 @@ def registrar_objetos():
             for t in range(num_triangulos):
                 triangulo = transformar_em_lista(input(''))
                 lista_triangulos.append(triangulo)
+            mtrl = np.array(transformar_em_lista(input('')))
             for j in range(num_triangulos):
-                ponto1 = lista_vertices[lista_triangulos[j][0]]
-                ponto2 = lista_vertices[lista_triangulos[j][1]]
-                ponto3 = lista_vertices[lista_triangulos[j][2]]
+                ponto1 = lista_vertices[int(lista_triangulos[j][0])]
+                ponto2 = lista_vertices[int(lista_triangulos[j][1])]
+                ponto3 = lista_vertices[int(lista_triangulos[j][2])]
                 normal = np.cross((ponto1 - ponto2), (ponto1 - ponto3))
-                lista_normal_faces.append(normal)
-            for v in range(num_vertices):
-                cont = 0
-                soma_normais_faces_adjacentes = 0
-                for k in range(num_triangulos):
-                    if v in lista_triangulos[k]:
-                        soma_normais_faces_adjacentes += lista_normal_faces[k]
-                        cont += 1
-                normal_vertice = soma_normais_faces_adjacentes/cont
-                lista_normal_vertices.append(normal_vertice)
-            for t in range(num_triangulos):
-                ponto1 = lista_vertices[lista_triangulos[t][0]]
-                ponto2 = lista_vertices[lista_triangulos[t][1]]
-                ponto3 = lista_vertices[lista_triangulos[t][2]]
-                normal = np.cross((ponto1 - ponto2), (ponto1 - ponto3))
-                objeto = ['triangulo', ponto1, ponto2, ponto3, normal,  lista_triangulos[t], lista_normal_vertices]
-                objetos[t] = objeto
+                objeto = ['triangulo', ponto1, ponto2, ponto3, normal, mtrl]
+                objetos[i + j] = objeto
+        elif tipo == '4':
+            lim_superior = float(input(''))
+            lim_inferior = float(input(''))
+            mtrl = np.array(transformar_em_lista(input('')))
+            objeto = ['cone', lim_superior, lim_inferior, mtrl]
+            objetos[i] = objeto
     return objetos
 
 
@@ -136,6 +140,15 @@ def intersecao(obj, vet, obs, min, max):
                 normal = normal_temp
                 ponto = ponto_temp
                 tipo = 3
+        elif obj[i][0] == 'cone':
+            inter, t, ponto_temp, normal_temp, mtrl_temp = intersecao_cone(obj[i], vet, obs)
+            if inter is True and t < men_t and min < t < max:
+                mtrl = mtrl_temp
+                men_t = t
+                primeira_interseccao = i
+                normal = normal_temp
+                ponto = ponto_temp
+                tipo = 3
     return primeira_interseccao, ponto, normal, mtrl, tipo, men_t
 
 
@@ -180,6 +193,25 @@ def intersecao_plano(pla, vet, obs):
         return False, -1, 0, 0, 0
 
 
+def intersecao_cone(cone, vet, obs):
+    a = vet[0] ** 2 - vet[1] ** 2 + vet[2] ** 2
+    bk = (2 * obs[0] * vet[0]) - (2 * obs[1] * vet[1]) + (2 * obs[2] * vet[2])
+    c = obs[0] ** 2 - obs[1] ** 2 + obs[2] ** 2
+    delta = bk ** 2 - (4 * a * c)
+    if delta > 0:
+        t = (-bk - sqrt(delta)) / (2 * a)
+        x = obs[0] + (t * vet[0])
+        y = obs[1] + (t * vet[1])
+        if not cone[2] <= y <= cone[1]:
+            return False, -1, 0, 0, 0
+        z = obs[2] + (t * vet[2])
+        ponto = np.array([x, y, z])
+        normal = np.array([ponto[0], 0, ponto[2]])
+        return True, t, ponto, normal, cone[3]
+    else:
+        return False, -1, 0, 0, 0
+
+
 def intersecao_triangulo(tri, vet, obs):
     try:
         t = (np.dot(tri[4], tri[1]) - np.dot(tri[4], obs))/np.dot(tri[4], vet)
@@ -187,7 +219,7 @@ def intersecao_triangulo(tri, vet, obs):
         y = obs[1] + t * vet[1]
         z = obs[2] + t * vet[2]
         ponto = np.array([x, y, z])
-        mtrl = 0
+        mtrl = tri[5]
         lin1 = [tri[1][0], tri[2][0], tri[3][0]]
         lin2 = [tri[1][1], tri[2][1], tri[3][1]]
         lin3 = [tri[1][2], tri[2][2], tri[3][2]]
@@ -210,7 +242,7 @@ def intersecao_triangulo(tri, vet, obs):
         alfa = resultado[0]
         beta = resultado[1]
         gama = resultado[2]
-        normal = 0  # alfa * (tri[6][tri[5][0]]) + beta * (tri[6][tri[5][1]]) + gama * (tri[6][tri[5][2]])  # Checar ordem dos vertices, tem que ser igual a ordem que descreve o ponto
+        normal = tri[4]
         if 0 < alfa < 1 and 0 < beta < 1 and 0 < gama < 1:
             return True, t, ponto, normal, mtrl
         else:
