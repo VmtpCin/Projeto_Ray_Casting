@@ -46,7 +46,7 @@ def registrar_objetos():
         if tipo == '1':
             raio = float(input(''))
             centro = np.array(transformar_em_lista(input('')))
-            centro = matrix_transform(centro)
+            #centro = matrix_transform(centro)
             mtrl = np.array(transformar_em_lista(input('')))
             objeto = ['Esfera', raio, centro, mtrl]
             objetos[i] = objeto
