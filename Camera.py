@@ -3,6 +3,7 @@ import Objetos_ray_tracing as Obj
 from PIL import Image
 from math import inf, sqrt, asin, acos, radians, sin, cos
 from tqdm.auto import tqdm
+from parser_input import ParserInput
 
 
 # Função: transformar input em lista
@@ -129,9 +130,16 @@ def traceray(objs, vet, obs, lzs, amb, r, min, max, in_out):
 
 
 # Registrar objetos
-camera = Obj.registrar_camera()
-lista_objetos = Obj.registrar_objetos()
-lista_luzes, ambiente = Obj.registrar_luzes()
+# camera = Obj.registrar_camera()
+# lista_objetos = Obj.registrar_objetos()
+# lista_luzes, ambiente = Obj.registrar_luzes()
+
+# Resgistrando a partir de arquivo
+parser = ParserInput("input.txt")
+camera = parser.camera
+lista_objetos = parser.objetos
+lista_luzes = parser.luzes
+ambiente = parser.ambiente
 
 #camera[0] = matrix_tranformation(camera[0], 30)
 #camera[1] = matrix_tranformation(camera[1], 30)
